@@ -1,0 +1,30 @@
+{
+  "name": "docker-tcp",
+  "displayName": "Docker over TCP",
+  "description": "Connect Podman Desktop to Docker engines reachable via tcp:// (e.g. Docker in WSL on tcp://127.0.0.1:2375)",
+  "version": "0.1.0",
+  "icon": "icon.png",
+  "publisher": "gasparovicm",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gasparovicm/podman-desktop-docker-tcp.git"
+  },
+  "homepage": "https://github.com/gasparovicm/podman-desktop-docker-tcp#readme",
+  "engines": {
+    "podman-desktop": "^1.20.0"
+  },
+  "main": "./extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Docker over TCP",
+      "properties": {
+        "dockerTcp.endpoints": {
+          "type": "string",
+          "default": "WSL Docker=tcp://127.0.0.1:2375",
+          "markdownDescription": "Docker engines to connect, separated by `;`. Format: `name=tcp://host:port`, e.g. `WSL Docker=tcp://127.0.0.1:2375; Server=tcp://127.0.0.1:23750`"
+        }
+      }
+    }
+  }
+}
