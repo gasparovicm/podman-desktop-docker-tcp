@@ -17,9 +17,16 @@ For each configured `tcp://` endpoint, the extension:
 
 No external processes, no admin rights, no changes to your Docker setup.
 
+## Requirements
+
+- Podman Desktop 1.20 or newer
+- A Docker Engine reachable on a `tcp://` address (see [Docker in WSL](#docker-in-wsl-expose-the-engine-on-localhost-only) below)
+
 ## Install
 
-**From the image (recommended)**
+There are three ways to install the extension. Option 1 and option 2 load it automatically every time Podman Desktop starts. Option 3 is for working on the extension.
+
+### 1. From the image (recommended)
 
 In Podman Desktop: **Extensions → Install custom…** and enter:
 
@@ -27,11 +34,53 @@ In Podman Desktop: **Extensions → Install custom…** and enter:
 ghcr.io/gasparovicm/podman-desktop-docker-tcp:latest
 ```
 
-**From source (development mode)**
+To build and publish the image yourself (the `Containerfile` follows the Podman Desktop extension image layout):
+
+```bash
+podman build -t ghcr.io/<you>/podman-desktop-docker-tcp:0.1.0 .
+podman push ghcr.io/<you>/podman-desktop-docker-tcp:0.1.0
+```
+
+### 2. Copy into the plugins folder (no registry needed)
+
+At startup, Podman Desktop loads every extension folder in its plugins directory:
+
+| OS | Plugins directory |
+|---|---|
+| Windows | `%USERPROFILE%\.local\share\containers\podman-desktop\plugins` |
+| macOS / Linux | `~/.local/share/containers/podman-desktop/plugins` |
+
+1. Quit Podman Desktop completely: **tray icon → Quit**. Closing the window is not enough.
+2. Copy the extension files into a `docker-tcp` subfolder.
+
+   PowerShell, run from this repository:
+
+   ```powershell
+   $dest = "$env:USERPROFILE\.local\share\containers\podman-desktop\plugins\docker-tcp"
+   New-Item -ItemType Directory -Force $dest | Out-Null
+   Copy-Item package.json, extension.js, icon.png, LICENSE, README.md $dest -Force
+   ```
+
+   Bash (Git Bash, macOS, Linux), run from this repository:
+
+   ```bash
+   dest="${USERPROFILE:-$HOME}/.local/share/containers/podman-desktop/plugins/docker-tcp"
+   mkdir -p "$dest"
+   cp package.json extension.js icon.png LICENSE README.md "$dest/"
+   ```
+
+3. Start Podman Desktop. **Docker over TCP** now appears under **Extensions → Installed**.
+
+**To update:** quit Podman Desktop, run the copy again, then start it.
+**To uninstall:** quit Podman Desktop and delete the `docker-tcp` folder.
+
+### 3. From source (development mode)
 
 1. Clone or download this repository.
 2. **Settings → Preferences → Extensions →** enable **Development Mode**.
 3. **Extensions → Local Extensions → Add a local folder extension…** and select the folder.
+
+Use this only while you are editing the extension. Depending on your Podman Desktop version, you may have to add the folder again after every restart. Don't use it together with option 2: the extension would load twice, and the second copy could not open its pipe.
 
 ## Configure
 
@@ -81,6 +130,13 @@ The local pipe created by the extension is only accessible to your own user.
 ## Troubleshooting
 
 **? → Troubleshooting → Logs**, filter for `docker-tcp`. Each endpoint logs one line when it starts, or an error explaining why it could not.
+
+| Symptom | Check |
+|---|---|
+| Extension missing after restart | You installed it in development mode (option 3). Use option 1 or 2 instead. With option 2, check that `package.json` is directly inside `plugins\docker-tcp`, not in a subfolder below it. |
+| Connection shows as stopped | From Windows, run `curl http://127.0.0.1:2375/_ping`. It should print `OK`. If it doesn't, Docker in WSL is not listening on TCP, or WSL is not running. |
+| `cannot open \\.\pipe\pd-docker-tcp-…` in the logs | Another copy of the extension already holds the pipe. Most often it is loaded both in development mode and from the plugins folder. Remove one of them. |
+| Works with `localhost` in the CLI but not here | Use `127.0.0.1` in the endpoint, not `localhost` (see above). |
 
 ## License
 
