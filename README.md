@@ -80,7 +80,21 @@ At startup, Podman Desktop loads every extension folder in its plugins directory
 2. **Settings → Preferences → Extensions →** enable **Development Mode**.
 3. **Extensions → Local Extensions → Add a local folder extension…** and select the folder.
 
-Use this only while you are editing the extension. Depending on your Podman Desktop version, you may have to add the folder again after every restart. Don't use it together with option 2: the extension would load twice, and the second copy could not open its pipe.
+Use this only while you are editing the extension. Depending on your Podman Desktop version, you may have to add the folder again after every restart.
+
+Podman Desktop loads an extension ID only once. If the extension is already installed (option 1 or 2), adding the folder fails with:
+
+```
+Extension with id gasparovicm.docker-tcp is already loaded globally. It cannot be added as a development folder.
+```
+
+**Switching to development mode:**
+
+1. Quit Podman Desktop.
+2. Remove the installed copy: delete the `plugins\docker-tcp` folder (option 2), or uninstall the extension under **Extensions → Installed** (option 1).
+3. Start Podman Desktop and add the folder under **Local extensions**.
+
+**Switching back:** remove the folder from **Local extensions**, quit Podman Desktop, and install it again with option 1 or 2.
 
 ## Configure
 
@@ -135,7 +149,7 @@ The local pipe created by the extension is only accessible to your own user.
 |---|---|
 | Extension missing after restart | You installed it in development mode (option 3). Use option 1 or 2 instead. With option 2, check that `package.json` is directly inside `plugins\docker-tcp`, not in a subfolder below it. |
 | Connection shows as stopped | From Windows, run `curl http://127.0.0.1:2375/_ping`. It should print `OK`. If it doesn't, Docker in WSL is not listening on TCP, or WSL is not running. |
-| `cannot open \\.\pipe\pd-docker-tcp-…` in the logs | Another copy of the extension already holds the pipe. Most often it is loaded both in development mode and from the plugins folder. Remove one of them. |
+| "Add Extension Failed: … is already loaded globally" | The extension is already installed. To work on it in development mode, see [Switching to development mode](#3-from-source-development-mode). |
 | Works with `localhost` in the CLI but not here | Use `127.0.0.1` in the endpoint, not `localhost` (see above). |
 
 ## License
